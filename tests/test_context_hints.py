@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import io
+import json
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 
 from context_hints import WordContext, print_suggestions, suggestions
+from reduce_with_context import main as contextual_main
 
 
 class ContextHintTests(unittest.TestCase):
@@ -40,6 +43,27 @@ class ContextHintTests(unittest.TestCase):
         )
         output = stream.getvalue()
         self.assertEqual(output.count("[optional analysis]"), 3)
+
+    def test_contextual_cli_preserves_json_stdout_and_puts_prompts_on_stderr(self) -> None:
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            status = contextual_main(
+                [
+                    "--hyperbolic-surface",
+                    "--gromov-word-space",
+                    "--finite-state-action",
+                    "A2",
+                    "1",
+                    "2",
+                    "1",
+                ]
+            )
+        self.assertEqual(status, 0)
+        result = json.loads(stdout.getvalue())
+        self.assertEqual(result["coxeter_type"], "A2")
+        self.assertEqual(result["reduced"], [1, 2, 1])
+        self.assertEqual(stderr.getvalue().count("[optional analysis]"), 3)
 
 
 if __name__ == "__main__":
