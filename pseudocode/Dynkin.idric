@@ -1,0 +1,158 @@
+-- Dynkin.idric
+--
+-- DESIGN SKETCH ONLY. This is deliberately Idriç-shaped pseudocode, not a
+-- claim that the current parser/typechecker accepts every construct below.
+-- The point is to settle the data boundaries before fighting syntax.
+
+module Dynkin
+
+-- Keep infinity explicit. Do not use a magic integer.
+data PairOrder = Finite ℕ | Infinite
+
+record CoxeterSystem (n : ℕ) where
+  constructor MkCoxeterSystem
+  order : Fin n → Fin n → PairOrder
+
+  -- Desired checked invariants:
+  -- order i i = Finite 1
+  -- order i j = order j i
+  -- for i ≠ j, finite order is at least 2
+
+record Node where
+  constructor MkNode
+  name : String
+
+record CoxeterDiagram (n : ℕ) where
+  constructor MkCoxeterDiagram
+  nodes  : Vect n Node
+  system : CoxeterSystem n
+
+-- Dynkin information is a stronger layer than Coxeter information.
+-- The Cartan matrix remembers root-length/orientation information that the
+-- Coxeter matrix alone can forget (notably the B/C distinction).
+record DynkinDiagram (n : ℕ) where
+  constructor MkDynkinDiagram
+  coxeter : CoxeterDiagram n
+  cartan  : Fin n → Fin n → ℤ
+
+-- Do not make a matrix the definition of a group element.
+data Word : (n : ℕ) → Type where
+  Empty : Word n
+  Push  : Fin n → Word n → Word n
+
+identity : Word n
+identity = Empty
+
+-- A proof-producing rewrite record. Exact algebraic reasons belong here.
+data Rule
+  = CancelInvolution
+  | CommuteOrderTwo
+  | Braid ℕ
+
+record RewriteEvidence (n : ℕ) where
+  constructor MkRewriteEvidence
+  before : Word n
+  after  : Word n
+  rule   : Rule
+
+-- A future version should make `valid` a proposition/proof object rather than
+-- a Bool. Bool is written here only to show the boundary clearly.
+valid : CoxeterSystem n → RewriteEvidence n → Bool
+valid system evidence =
+  case evidence.rule of
+    CancelInvolution  => checkAdjacentSame evidence.before evidence.after
+    CommuteOrderTwo   => checkCommute system evidence.before evidence.after
+    Braid m           => checkBraid system m evidence.before evidence.after
+
+-- The function we ultimately want: simplification plus replayable evidence.
+record Reduction (n : ℕ) where
+  constructor MkReduction
+  original : Word n
+  reduced  : Word n
+  steps    : List (RewriteEvidence n)
+
+reduce : CoxeterSystem n → Word n → Reduction n
+reduce system word =
+  -- TODO: deterministic reduced-word algorithm.
+  -- First implementation can do cancellation + oriented commuting moves.
+  -- Add braid moves only with a termination/canonicalization strategy.
+  MkReduction word word []
+
+-- --------------------------------------------------------------------------
+-- Geometric layer
+-- --------------------------------------------------------------------------
+
+record Vector (n : ℕ) (scalar : Type) where
+  constructor MkVector
+  coordinates : Vect n scalar
+
+-- Generic linear-algebra operations are placeholders here.
+dot   : Vector n scalar → Vector n scalar → scalar
+scale : scalar → Vector n scalar → Vector n scalar
+(-)   : Vector n scalar → Vector n scalar → Vector n scalar
+(/)   : scalar → scalar → scalar
+(*)   : scalar → scalar → scalar
+
+-- A Householder reflection should be represented by its normal, not by a
+-- dense n×n matrix unless a consumer specifically asks for one.
+record Reflector (n : ℕ) (scalar : Type) where
+  constructor Householder
+  normal : Vector n scalar
+
+reflect : Num scalar => Reflector n scalar → Vector n scalar → Vector n scalar
+reflect (Householder normal) x =
+  x - scale ((2 * dot x normal) / dot normal normal) normal
+
+-- Two certified reflections can be retained as a composition. A later pass
+-- may also derive a plane-rotation view without destroying the reflection view.
+record ReflectionPair (n : ℕ) (scalar : Type) where
+  constructor MkReflectionPair
+  first  : Reflector n scalar
+  second : Reflector n scalar
+
+rotateByReflections : Num scalar => ReflectionPair n scalar → Vector n scalar → Vector n scalar
+rotateByReflections pair x =
+  reflect pair.second (reflect pair.first x)
+
+-- --------------------------------------------------------------------------
+-- Certified Coxeter generators
+-- --------------------------------------------------------------------------
+
+-- This is the crucial stronger type. A generic Householder is NOT automatically
+-- a Coxeter generator. The certificate must come from construction/root data.
+record CoxeterReflector (n : ℕ) (dimension : ℕ) (scalar : Type) where
+  constructor MkCoxeterReflector
+  diagram   : CoxeterDiagram n
+  generator : Fin n
+  operator  : Reflector dimension scalar
+  -- TODO proof: operator implements the simple reflection for generator.
+
+-- Keep symbolic form as long as possible.
+data Transform (n : ℕ) (dimension : ℕ) (scalar : Type)
+  = Identity
+  | Reflect (Reflector dimension scalar)
+  | CoxeterWord (CoxeterDiagram n) (Word n)
+  | Compose (Transform n dimension scalar) (Transform n dimension scalar)
+  | DenseMatrix -- placeholder: Matrix dimension dimension scalar
+
+-- A compiler lowering sketch:
+--
+-- source reflection constructors
+--   → Reflector + construction certificate
+--   → when root/diagram provenance exists: CoxeterReflector
+--   → collect adjacent CoxeterReflectors into a Word
+--   → reduce word with exact relations
+--   → retain RewriteEvidence
+--   → apply remaining Householders directly
+--   → materialize a matrix only if the backend/consumer demands one
+
+-- NEVER:
+--
+-- arbitrary Float matrix
+--   → "looks orthogonal"
+--   → "probably a reflection"
+--   → guess Dynkin node
+--   → apply braid relations
+--
+-- Approximate numerical observations can be evidence for diagnostics, but not
+-- authority for exact group identities.
