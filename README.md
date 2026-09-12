@@ -59,3 +59,8 @@ generic matrix
 ```
 
 Do not climb this ladder by guessing from floating-point resemblance. A matrix that numerically looks orthogonal is weaker evidence than an operation constructed as a reflection, and an arbitrary reflection is weaker evidence than a reflection certified as a particular generator of a Coxeter system.
+
+## Geometry and response-map notes
+
+- [Gromov: Sign and Geometric Meaning of Curvature](references/gromov/sign-and-geometric-meaning-of-curvature.md) — existing reading guide, not a mirrored PDF.
+- [Suspension response maps: retain the structure before the matrix](notes/suspension-response-structure.md) — spaces, metrics, units, orientations, chain rules, and coordinate invariants in the eccentric-cam example. Cross-linked with ASE, Econometrician in a Box, and Fulton. This is a design note, not an implemented reducer, a calibrated truck model, or validation of speculative CP^n/SO(n) machinery.
