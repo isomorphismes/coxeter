@@ -38,16 +38,6 @@ KrohnRhodesCandidate semigroup
 
 A future adapter may derive a finite transformation semigroup from a finite-state action and then offer Krohn-Rhodes decomposition. It should not derive that capability merely from seeing `Word`.
 
-This is why `context_hints.py` gates the current placeholder on `finite_state_action=True`.
+## Current implementation boundary
 
-## Current placeholder
-
-As of August 26, 2026 the contextual CLI can print:
-
-```text
-Do you think you might want to decompose this with Krohn-Rhodes?
-```
-
-It also says that the hint came from a design-time placeholder, that an isolated word is not enough, and that the type system may need inspection before implementing the actual decomposition.
-
-The placeholder is intentionally cheap. Do not add a general semigroup engine or Krohn-Rhodes implementation to the A2/A3 reducer just to make the prompt real.
+The current exact A2/A3 reducer does not construct finite-state actions or implement Krohn-Rhodes decomposition. This note records a possible certified adapter boundary; it adds no prompt wrapper or inference from caller-supplied Boolean flags.
