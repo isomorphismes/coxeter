@@ -90,7 +90,7 @@ record Vector (n : ℕ) (scalar : Type) where
 dot   : Vector n scalar → Vector n scalar → scalar
 scale : scalar → Vector n scalar → Vector n scalar
 (-)   : Vector n scalar → Vector n scalar → Vector n scalar
-(/)   : scalar → scalar → scalar
+(÷)   : scalar → scalar → scalar
 (*)   : scalar → scalar → scalar
 
 -- A Householder reflection should be represented by its normal, not by a
@@ -101,7 +101,7 @@ record Reflector (n : ℕ) (scalar : Type) where
 
 reflect : Num scalar => Reflector n scalar → Vector n scalar → Vector n scalar
 reflect (Householder normal) x =
-  x - scale ((2 * dot x normal) / dot normal normal) normal
+  x - scale ((2 * dot x normal) ÷ dot normal normal) normal
 
 -- Two certified reflections can be retained as a composition. A later pass
 -- may also derive a plane-rotation view without destroying the reflection view.
