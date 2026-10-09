@@ -39,3 +39,9 @@ See `../notes/householder-reflectors.md` for the compiler-facing connection.
 ## Repository policy for books
 
 Do not infer redistribution permission from the existence of a PDF or an Internet Archive/Open Library scan. A book file belongs here only when a license or public-domain status actually permits repository redistribution. Otherwise store bibliographic metadata, lawful source/borrow/preview links, and original notes.
+
+## Scott's eight Thurston geometries and Coxeter chambers
+
+Peter Scott, [“The Geometries of 3-Manifolds”](https://doi.org/10.1112/blms/15.5.401), *Bulletin of the London Mathematical Society* **15** (1983), 401–487. Survey paper, not a book.
+
+**Unbuilt feature:** [certified spherical, Euclidean and hyperbolic 3D reflection chambers #10](https://github.com/isomorphismes/coxeter/issues/10), cross-linked to [hyperbolic honeycomb navigation](https://github.com/isomorphismes/knot-complement/issues/14) and the [eight-geometry viewer](https://github.com/isomorphismes/knot-complement/issues/13). Rank-4 reflection examples can inform `S^3`, `E^3` and `H^3`, but generic Nil/Sol models are **not** Coxeter reflection honeycombs. Distinguish a reflection orbifold from a manifold quotient.
